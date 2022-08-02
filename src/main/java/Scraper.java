@@ -1,11 +1,11 @@
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Integer.parseInt;
 
@@ -29,20 +29,40 @@ public class Scraper {
 
                 Elements table = doc.select("#competition_view_results > tbody > tr");
                 for (Element row : table) {
-                    if (!row.getElementsByTag("th").isEmpty()){
+                    if (!row.select("th").isEmpty()){
                         if (!row.select("tr > th.competition_view_event").isEmpty())
                             results.event = row.select("tr > th.competition_view_event").text().trim();
                         else {
-                            String sexSplit[] = row.select("th").text().split(" ");
+                            /* Obtain lifter sex */
+                            String sexSplit[] = row.select("th").text().split("-");
                             results.sex = sexSplit[0];
 
-                             /*
-                            String equipmentSplit[] = row.select("th").text().split(" ");
-                            results.equipment = equipmentSplit[2];
-                            */
+                            /* Equipment Conditional */
+                            String equip = row.select("th").text();
+                            if (equip.contains("Raw With Wraps")) {
+                                results.equipment = "Raw With Wraps";
+                            } else if (equip.contains("Raw")) {
+                                results.equipment = "Raw";
+                            } else if (equip.contains("Equipped")) {
+                                results.equipment = "Equipped";
+                            } else if (equip.isEmpty()) {
+                                results.equipment = "Unknown";
+                            }
 
-
-                        }
+                            /* Division Conditional */
+                            String division[] = row.select("th").text().split("-");
+                            if (division[1].contains("Raw with Wraps")) {
+                                // Split string after wraps and return all values afterwords
+                                String[] split = division[1].split("(?<=Wraps) ");
+                                results.division = split[1];
+                            } else if (division[1].contains("Raw")) {
+                                String[] split = division[1].split("(?<=Raw) ");
+                                results.division = split[1];
+                            } else if (division[1].contains("Equipped")) {
+                                String [] split = division[1].split("(?<=Eqiupped) ");
+                                results.division = split[1];
+                            }
+                         }
                     } else {
                         results.weightclass = row.select("td:nth-of-type(1)").text();
                         results.placing = row.select("td:nth-of-type(2)").text();
@@ -50,51 +70,37 @@ public class Scraper {
                         results.lifterID = row.select("td:nth-of-type(3)").attr("id");
                         results.name = row.select("td:nth-of-type(3)").text();
                         results.yob = row.select("td:nth-of-type(4)").text();
-                        if (!row.select("td:nth-of-type(5)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(5)").text().isEmpty())
                             results.team = row.select("td:nth-of-type(5)").text();
-                        }
                         results.lifterState = row.select("td:nth-of-type(6)").text();
                         results.lotNumber = parseInt(row.select("td:nth-of-type(7)").text());
                         results.weight = Double.parseDouble(row.select("td:nth-of-type(8)").text());
-                        if (!row.select("td:nth-of-type(9)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(9)").text().isEmpty())
                             results.squat1 = Double.parseDouble(row.select("td:nth-of-type(9)").text());
-                        }
-                        if (!row.select("td:nth-of-type(10)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(10)").text().isEmpty())
                             results.squat2 = Double.parseDouble(row.select("td:nth-of-type(10)").text());
-                        }
-                        if (!row.select("td:nth-of-type(11)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(11)").text().isEmpty())
                             results.squat3 = Double.parseDouble(row.select("td:nth-of-type(11)").text());
-                        }
-                        if (!row.select("td:nth-of-type(12)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(12)").text().isEmpty())
                             results.bench1 = Double.parseDouble(row.select("td:nth-of-type(12)").text());
-                        }
-                        if (!row.select("td:nth-of-type(13)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(13)").text().isEmpty())
                             results.bench2 = Double.parseDouble(row.select("td:nth-of-type(13)").text());
-                        }
-                        if (!row.select("td:nth-of-type(14)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(14)").text().isEmpty())
                             results.bench3 = Double.parseDouble(row.select("td:nth-of-type(14)").text());
-                        }
-                        if (!row.select("td:nth-of-type(15)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(15)").text().isEmpty())
                             results.deadlift1 = Double.parseDouble(row.select("td:nth-of-type(15)").text());
-                        }
-                        if (!row.select("td:nth-of-type(16)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(16)").text().isEmpty())
                             results.deadlift2 = Double.parseDouble(row.select("td:nth-of-type(16)").text());
-                        }
-                        if (!row.select("td:nth-of-type(17)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(17)").text().isEmpty())
                             results.deadlift3 = Double.parseDouble(row.select("td:nth-of-type(17)").text());
-                        }
-                        if (!row.select("td:nth-of-type(18)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(18)").text().isEmpty())
                             results.total = Double.parseDouble(row.select("td:nth-of-type(18)").text());
-                        }
-                        if (!row.select("td:nth-of-type(19)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(19)").text().isEmpty())
                             results.points = Double.parseDouble(row.select("td:nth-of-type(19)").text());
-                        }
-                        if (!row.select("td:nth-of-type(20)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(20)").text().isEmpty())
                             results.bppoints = Double.parseDouble(row.select("td:nth-of-type(20)").text());
-                        }
-                        if (!row.select("td:nth-of-type(21)").text().isEmpty()) {
+                        if (!row.select("td:nth-of-type(21)").text().isEmpty())
                             results.drugTested = row.select("td:nth-of-type(21)").text();
-                        }
                     }
                 }
             } catch (IOException e) {
