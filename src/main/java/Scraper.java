@@ -56,29 +56,37 @@ public class Scraper {
                             sex = sexSplit[0];
 
                             /* Equipment Conditional */
-                            String equip = row.select("th").text();
-                            if (equip.contains("Raw With Wraps")) {
-                                equipment = "Raw With Wraps";
-                            } else if (equip.contains("Raw")) {
-                                equipment = "Raw";
-                            } else if (equip.contains("Equipped")) {
-                                equipment = "Equipped";
-                            } else if (equip.isEmpty()) {
-                                equipment = "Unknown";
+                            String[] equip = row.select("th").text().split("-");
+
+                            if (equip.length > 1) {
+                                if (equip[1].contains("Raw With Wraps")) {
+                                    equipment = "Raw With Wraps";
+                                } else if (equip[1].contains("Raw")) {
+                                    equipment = "Raw";
+                                } else if (equip[1].contains("Equipped")) {
+                                    equipment = "Equipped";
+                                } else if (equip[1].isEmpty()) {
+                                    equipment = "Unknown";
+                                }
                             }
 
                             /* Division Conditional */
                             String[] divisionSplit = row.select("th").text().split("-");
-                            if (divisionSplit[1].contains("Raw with Wraps")) {
-                                // Split string after wraps and return all values afterwords
-                                String[] split = divisionSplit[1].split("(?<=Wraps) ");
-                                division = split[1];
-                            } else if (divisionSplit[1].contains("Raw")) {
-                                String[] split = divisionSplit[1].split("(?<=Raw) ");
-                                division = split[1];
-                            } else if (divisionSplit[1].contains("Equipped")) {
-                                String[] split = divisionSplit[1].split("(?<=Eqiupped) ");
-                                division = split[1];
+
+                            if (divisionSplit.length > 1) {
+                                if (divisionSplit[1].contains("Raw with Wraps")) {
+                                    // Split string after wraps and return all values afterwords
+                                    String[] split = divisionSplit[1].split("(?<=Wraps) ");
+                                    division = split[1];
+                                } else if (divisionSplit[1].contains("Raw")) {
+                                    String[] split = divisionSplit[1].split("(?<=Raw) ");
+                                    division = split[1];
+                                } else if (divisionSplit[1].contains("Equipped")) {
+                                    String[] split = divisionSplit[1].split("(?<=Eqiupped) ");
+                                    division = split[1];
+                                }
+                            } else {
+                                division = "";
                             }
                          }
                     } else {

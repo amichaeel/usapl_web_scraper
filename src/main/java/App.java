@@ -7,7 +7,7 @@ class App {
         Scraper scraper = new Scraper();
         WriteToFile write = new WriteToFile();
         List<String> urls = meetURLS.getMeets();
-        ArrayList<MeetResults> results = scraper.scrapeMeets(urls, 1);
+        ArrayList<MeetResults> results = scraper.scrapeMeets(urls, 10);
         write.openFile();
         write.addRecords(results);
         write.closeFile();
