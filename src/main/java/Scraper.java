@@ -10,111 +10,127 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 
 public class Scraper {
-    public List<Object> scrapeMeets(List<String> urls, int amount) throws Exception {
-        List<Object> data = new ArrayList<Object>();
+    public ArrayList<MeetResults> scrapeMeets(List<String> urls, int amount) throws Exception {
+        ArrayList<MeetResults> records = new ArrayList<MeetResults>();
         int i = 1;
         for (String meet : urls) {
             if (i == amount + 1) break;
-            MeetResults results = new MeetResults();
             try {
                 Document doc = Jsoup.connect(meet).get();
-
                 String[] urlSplit = meet.split("=", 2);
-                results.meetID = urlSplit[1];
-                results.meetName = doc.select("#content > h3:nth-child(3)").text();
-                results.meetDate = doc.select("#content > table:nth-child(4) > tbody > tr:nth-child(1) > td").toString();
-                results.sanctionNumber = doc.select("#content > table:nth-child(4) > tbody > tr:nth-child(2) > td").toString();
-                results.meetState = doc.select("#content > table:nth-child(4) > tbody > tr:nth-child(3) > td").toString();
-                System.out.println("Processing meet: " + results.meetName + " || " + i + " out of " + amount);
-
+                String meetID = urlSplit[1];
+                String meetName = doc.select("#content > h3:nth-child(3)").text();
+                String meetDate = doc.select("#content > table:nth-child(4) > tbody > tr:nth-child(1) > td").text();
+                String sanctionNumber = doc.select("#content > table:nth-child(4) > tbody > tr:nth-child(2) > td").text();
+                String meetState = doc.select("#content > table:nth-child(4) > tbody > tr:nth-child(3) > td").text();
+                String event = "";
+                String sex = "";
+                String equipment = "";
+                String division = "";
+                String weightClass = "";
+                String placing = "";
+                String lifterID = "";
+                String name = "";
+                String yob = "";
+                String team = "";
+                String lifterState = "";
+                int lotNumber = 0;
+                double weight = 0;
+                double squat1 = 0, squat2 = 0, squat3 = 0;
+                double bench1 = 0, bench2 = 0, bench3 = 0;
+                double deadlift1 = 0, deadlift2 = 0, deadlift3 = 0;
+                double total = 0;
+                double points = 0;
+                double bppoints = 0;
+                String drugTested = "";
                 Elements table = doc.select("#competition_view_results > tbody > tr");
+                System.out.println("Processing meet: " + meetName + " || " + i + " out of " + amount);
                 for (Element row : table) {
+
                     if (!row.select("th").isEmpty()){
                         if (!row.select("tr > th.competition_view_event").isEmpty())
-                            results.event = row.select("tr > th.competition_view_event").text().trim();
+                            event = row.select("tr > th.competition_view_event").text().trim();
                         else {
                             /* Obtain lifter sex */
-                            String sexSplit[] = row.select("th").text().split("-");
-                            results.sex = sexSplit[0];
+                            String[] sexSplit = row.select("th").text().split("-");
+                            sex = sexSplit[0];
 
                             /* Equipment Conditional */
                             String equip = row.select("th").text();
                             if (equip.contains("Raw With Wraps")) {
-                                results.equipment = "Raw With Wraps";
+                                equipment = "Raw With Wraps";
                             } else if (equip.contains("Raw")) {
-                                results.equipment = "Raw";
+                                equipment = "Raw";
                             } else if (equip.contains("Equipped")) {
-                                results.equipment = "Equipped";
+                                equipment = "Equipped";
                             } else if (equip.isEmpty()) {
-                                results.equipment = "Unknown";
+                                equipment = "Unknown";
                             }
 
                             /* Division Conditional */
-                            String division[] = row.select("th").text().split("-");
-                            if (division[1].contains("Raw with Wraps")) {
+                            String[] divisionSplit = row.select("th").text().split("-");
+                            if (divisionSplit[1].contains("Raw with Wraps")) {
                                 // Split string after wraps and return all values afterwords
-                                String[] split = division[1].split("(?<=Wraps) ");
-                                results.division = split[1];
-                            } else if (division[1].contains("Raw")) {
-                                String[] split = division[1].split("(?<=Raw) ");
-                                results.division = split[1];
-                            } else if (division[1].contains("Equipped")) {
-                                String [] split = division[1].split("(?<=Eqiupped) ");
-                                results.division = split[1];
+                                String[] split = divisionSplit[1].split("(?<=Wraps) ");
+                                division = split[1];
+                            } else if (divisionSplit[1].contains("Raw")) {
+                                String[] split = divisionSplit[1].split("(?<=Raw) ");
+                                division = split[1];
+                            } else if (divisionSplit[1].contains("Equipped")) {
+                                String[] split = divisionSplit[1].split("(?<=Eqiupped) ");
+                                division = split[1];
                             }
                          }
                     } else {
-                        results.weightclass = row.select("td:nth-of-type(1)").text();
-                        results.placing = row.select("td:nth-of-type(2)").text();
+                        weightClass = row.select("td:nth-of-type(1)").text();
+                        placing = row.select("td:nth-of-type(2)").text();
                         // Parse lifer ID from string
-                        results.lifterID = row.select("td:nth-of-type(3)").attr("id");
-                        results.name = row.select("td:nth-of-type(3)").text();
-                        results.yob = row.select("td:nth-of-type(4)").text();
+                        String[] lifterIDSplit = row.select("td:nth-of-type(3)").attr("id").split("(?<=_)");
+                        lifterID = lifterIDSplit[1];
+                        name = row.select("td:nth-of-type(3)").text();
+                        yob = row.select("td:nth-of-type(4)").text();
                         if (!row.select("td:nth-of-type(5)").text().isEmpty())
-                            results.team = row.select("td:nth-of-type(5)").text();
-                        results.lifterState = row.select("td:nth-of-type(6)").text();
-                        results.lotNumber = parseInt(row.select("td:nth-of-type(7)").text());
-                        results.weight = Double.parseDouble(row.select("td:nth-of-type(8)").text());
+                            team = row.select("td:nth-of-type(5)").text();
+                        else
+                            team = "";
+                        lifterState = row.select("td:nth-of-type(6)").text();
+                        lotNumber = parseInt(row.select("td:nth-of-type(7)").text());
+                        weight = Double.parseDouble(row.select("td:nth-of-type(8)").text());
                         if (!row.select("td:nth-of-type(9)").text().isEmpty())
-                            results.squat1 = Double.parseDouble(row.select("td:nth-of-type(9)").text());
+                            squat1 = Double.parseDouble(row.select("td:nth-of-type(9)").text());
                         if (!row.select("td:nth-of-type(10)").text().isEmpty())
-                            results.squat2 = Double.parseDouble(row.select("td:nth-of-type(10)").text());
+                            squat2 = Double.parseDouble(row.select("td:nth-of-type(10)").text());
                         if (!row.select("td:nth-of-type(11)").text().isEmpty())
-                            results.squat3 = Double.parseDouble(row.select("td:nth-of-type(11)").text());
+                            squat3 = Double.parseDouble(row.select("td:nth-of-type(11)").text());
                         if (!row.select("td:nth-of-type(12)").text().isEmpty())
-                            results.bench1 = Double.parseDouble(row.select("td:nth-of-type(12)").text());
+                            bench1 = Double.parseDouble(row.select("td:nth-of-type(12)").text());
                         if (!row.select("td:nth-of-type(13)").text().isEmpty())
-                            results.bench2 = Double.parseDouble(row.select("td:nth-of-type(13)").text());
+                            bench2 = Double.parseDouble(row.select("td:nth-of-type(13)").text());
                         if (!row.select("td:nth-of-type(14)").text().isEmpty())
-                            results.bench3 = Double.parseDouble(row.select("td:nth-of-type(14)").text());
+                            bench3 = Double.parseDouble(row.select("td:nth-of-type(14)").text());
                         if (!row.select("td:nth-of-type(15)").text().isEmpty())
-                            results.deadlift1 = Double.parseDouble(row.select("td:nth-of-type(15)").text());
+                            deadlift1 = Double.parseDouble(row.select("td:nth-of-type(15)").text());
                         if (!row.select("td:nth-of-type(16)").text().isEmpty())
-                            results.deadlift2 = Double.parseDouble(row.select("td:nth-of-type(16)").text());
+                            deadlift2 = Double.parseDouble(row.select("td:nth-of-type(16)").text());
                         if (!row.select("td:nth-of-type(17)").text().isEmpty())
-                            results.deadlift3 = Double.parseDouble(row.select("td:nth-of-type(17)").text());
+                            deadlift3 = Double.parseDouble(row.select("td:nth-of-type(17)").text());
                         if (!row.select("td:nth-of-type(18)").text().isEmpty())
-                            results.total = Double.parseDouble(row.select("td:nth-of-type(18)").text());
+                            total = Double.parseDouble(row.select("td:nth-of-type(18)").text());
                         if (!row.select("td:nth-of-type(19)").text().isEmpty())
-                            results.points = Double.parseDouble(row.select("td:nth-of-type(19)").text());
+                            points = Double.parseDouble(row.select("td:nth-of-type(19)").text());
                         if (!row.select("td:nth-of-type(20)").text().isEmpty())
-                            results.bppoints = Double.parseDouble(row.select("td:nth-of-type(20)").text());
-                        if (!row.select("td:nth-of-type(21)").text().isEmpty())
-                            results.drugTested = row.select("td:nth-of-type(21)").text();
+                            bppoints = Double.parseDouble(row.select("td:nth-of-type(20)").text());
+                        drugTested = row.select("td:nth-of-type(21)").text().trim();
+
+                        MeetResults lifterData = new MeetResults(meetID, meetName, meetDate, meetState, sanctionNumber, event, sex, equipment, division, weightClass, placing, lifterID, name, yob, team, lifterState, lotNumber, weight, squat1, squat2, squat3, bench1, bench2, bench3, deadlift1, deadlift2, deadlift3, total, points, bppoints, drugTested);
+                        records.add(lifterData);
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            data.add(results);
             i++;
         }
-        return data;
-    }
-
-    @Override
-    public String toString() {
-        return "Scraper [getClass()=" + getClass() + ", hashCode()=" + hashCode() + ", toString()=" + super.toString()
-                + "]";
+        return records;
     }
 }
