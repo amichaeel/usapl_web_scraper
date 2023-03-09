@@ -1,14 +1,14 @@
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Meets {
-    public List<String> getMeets() throws IOException {
-        List<String> urls = new ArrayList<String>();
+    public List<String> getMeets() {
+        List<String> urls = new ArrayList<>();
         try {
             Document doc = Jsoup.connect("https://www.usapl.liftingdatabase.com/competitions").get();
             for (Element row : doc.select("table.tabledata > tbody > tr > td > a")) {
