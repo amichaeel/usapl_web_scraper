@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class App {
-    public static void main(String args[]) throws Exception{
+    public static void main(String[] args) {
         Meets meetURLS = new Meets();
         Scraper scraper = new Scraper();
         WriteToFile write = new WriteToFile();
